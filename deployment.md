@@ -115,22 +115,13 @@ php artisan view:cache
 
 ## 6. 以后每次更新
 
-代码合并进测试分支之后，在服务器站点目录执行：
+代码合并进测试分支之后，在服务器上执行：
 
 ```bash
-git pull
-composer install --no-dev --optimize-autoloader
-php artisan migrate --force
-php artisan filament:assets
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan queue:restart
+bash /www/wwwroot/SCRM/deploy/bt-update.sh
 ```
 
-`queue:restart` 让正在跑的队列在下一轮任务时加载新代码。不重启的话，同步仍会跑旧逻辑。
-
-这条命令在项目里落成 `deploy/bt-update.sh`，开发阶段 1 时一并提交。服务器上执行这一个脚本即完成更新。
+脚本使用 PHP 8.4，拉取代码、安装依赖、迁移、发布前端资源，并清掉配置、路由和视图缓存。不要再执行 `config:cache` 或 `route:cache`，这两条会把企业微信登录的地址写死。`queue:restart` 让正在跑的队列在下一轮任务时加载新代码。
 
 更新前先在开发机跑完自动测试。测试没过不发布。
 
