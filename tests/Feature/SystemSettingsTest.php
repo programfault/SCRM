@@ -11,13 +11,13 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 });
 
-it('stores a pasted secret and does not keep it in the form', function () {
+it('stores a pasted secret and keeps it visible', function () {
     Livewire::test(SystemSettings::class)
         ->set('data.corp_id', ' ww123 ')
         ->set('data.agent_id', ' 1000002 ')
         ->set('data.secret', " abc-secret \n")
         ->call('save')
-        ->assertSet('data.secret', null)
+        ->assertSet('data.secret', 'abc-secret')
         ->assertSee('已写入 10 位');
 
     $setting = WecomSetting::current();
@@ -38,6 +38,7 @@ it('keeps the saved secret when the field is left empty', function () {
         ->set('data.corp_id', 'ww456')
         ->set('data.secret', null)
         ->call('save')
+        ->assertSet('data.secret', 'abc-secret')
         ->assertSee('已写入 10 位');
 
     $setting = WecomSetting::current();

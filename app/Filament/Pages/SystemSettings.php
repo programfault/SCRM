@@ -36,7 +36,7 @@ class SystemSettings extends Page
         $this->data = [
             'corp_id' => $setting?->corp_id,
             'agent_id' => $setting?->agent_id,
-            'secret' => null,
+            'secret' => $setting?->secret,
         ];
     }
 
@@ -50,7 +50,7 @@ class SystemSettings extends Page
                     ->label('应用 Secret')
                     ->autocomplete('off')
                     ->dehydrated()
-                    ->helperText('粘贴后应能直接看到内容。保存成功后输入框会清空，这是正常的。')
+                    ->helperText('保存后仍显示在这里。组织架构里的员工要另点右上角「同步企业微信」才会出现。')
                     ->required(fn (): bool => blank(WecomSetting::current()?->secret)),
                 Placeholder::make('secret_status')
                     ->label('Secret 状态')
@@ -105,7 +105,7 @@ class SystemSettings extends Page
         }
 
         $setting->save();
-        $this->data['secret'] = null;
+        $this->data['secret'] = $setting->secret;
 
         Notification::make()
             ->title($secret !== ''
