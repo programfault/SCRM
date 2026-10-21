@@ -150,6 +150,21 @@ it('does not create a user who has not been synced', function () {
     $this->assertGuest();
 });
 
+it('sends the WeCom browser to passwordless entry', function () {
+    $this->withHeader('User-Agent', 'Mozilla/5.0 wxwork/4.1.0 MicroMessenger')
+        ->get('/')
+        ->assertRedirect(route('wecom.start'));
+
+    $this->withHeader('User-Agent', 'Mozilla/5.0 wxwork/4.1.0 MicroMessenger')
+        ->get('/admin/login')
+        ->assertRedirect(route('wecom.start'));
+});
+
+it('keeps the password login for a desktop browser', function () {
+    $this->get('/')->assertRedirect('/admin/login');
+    $this->get('/admin/login')->assertOk();
+});
+
 it('logs a synced active person in without a login page', function () {
     bindWecom(sampleDepartments(), sampleUsers(), 'zhao');
     sync();
