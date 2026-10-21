@@ -48,10 +48,21 @@ class SystemSettings extends Page
                 TextInput::make('agent_id')->label('应用 AgentId')->required()->maxLength(32),
                 TextInput::make('secret')
                     ->label('应用 Secret')
-                    ->password()
-                    ->revealable()
-                    ->helperText('已保存过的 Secret 不会回显。留空表示不修改。')
+                    ->autocomplete('off')
+                    ->dehydrated()
+                    ->helperText('粘贴后应能直接看到内容。保存成功后输入框会清空，这是正常的。')
                     ->required(fn (): bool => blank(WecomSetting::current()?->secret)),
+                Placeholder::make('secret_status')
+                    ->label('Secret 状态')
+                    ->content(function (): string {
+                        $saved = WecomSetting::current()?->secret;
+
+                        if (! is_string($saved) || $saved === '') {
+                            return '还没有写入。';
+                        }
+
+                        return '已写入 '.strlen($saved).' 位。输入框留空不代表没保存。';
+                    }),
                 Placeholder::make('home')
                     ->label('企业微信应用主页')
                     ->content(fn (): string => url('/wecom')),
@@ -69,20 +80,39 @@ class SystemSettings extends Page
 
     public function save(): void
     {
-        $state = $this->getSchema('content')->getState();
-        $values = $state['data'] ?? $state;
+        $secret = trim((string) ($this->data['secret'] ?? ''));
+        $corpId = trim((string) ($this->data['corp_id'] ?? ''));
+        $agentId = trim((string) ($this->data['agent_id'] ?? ''));
+
+        $this->data['corp_id'] = $corpId;
+        $this->data['agent_id'] = $agentId;
+        $this->data['secret'] = $secret !== '' ? $secret : null;
+
+        $this->getSchema('content')->getState();
+
         $setting = WecomSetting::current() ?? new WecomSetting;
+        $setting->corp_id = $corpId;
+        $setting->agent_id = $agentId;
 
-        $setting->corp_id = $values['corp_id'];
-        $setting->agent_id = $values['agent_id'];
+        if ($secret !== '') {
+            $setting->secret = $secret;
+        }
 
-        if (filled($values['secret'] ?? null)) {
-            $setting->secret = $values['secret'];
+        if (blank($setting->secret)) {
+            Notification::make()->title('应用 Secret 没有写入，请重新粘贴后再保存')->danger()->send();
+
+            return;
         }
 
         $setting->save();
+        $this->data['secret'] = null;
 
-        Notification::make()->title('已保存')->success()->send();
+        Notification::make()
+            ->title($secret !== ''
+                ? '应用 Secret 已写入，共 '.strlen($secret).' 位'
+                : '已保存，应用 Secret 保持原值，共 '.strlen((string) $setting->secret).' 位')
+            ->success()
+            ->send();
     }
 
     protected function getHeaderActions(): array

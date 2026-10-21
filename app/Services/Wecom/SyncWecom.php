@@ -7,6 +7,7 @@ use App\Enums\UserStatus;
 use App\Models\Department;
 use App\Models\SyncLog;
 use App\Models\User;
+use EasyWeChat\Kernel\Exceptions\HttpException;
 use Illuminate\Support\Facades\DB;
 
 class SyncWecom
@@ -32,7 +33,7 @@ class SyncWecom
                 'status' => 'succeeded',
                 'finished_at' => now(),
             ]);
-        } catch (WecomNotConfigured|WecomRequestFailed $exception) {
+        } catch (WecomNotConfigured|WecomRequestFailed|HttpException $exception) {
             $log->update([
                 'status' => 'failed',
                 'message' => $exception->getMessage(),

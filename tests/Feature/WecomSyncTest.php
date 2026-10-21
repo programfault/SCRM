@@ -5,6 +5,7 @@ use App\Enums\UserStatus;
 use App\Models\Department;
 use App\Models\User;
 use App\Services\Wecom\WecomRequestFailed;
+use EasyWeChat\Kernel\Exceptions\HttpException;
 
 it('maps counters to their parent store and skips the unsorted department', function () {
     bindWecom(sampleDepartments(), sampleUsers());
@@ -99,6 +100,18 @@ it('refuses login for a disabled person', function () {
     $this->get('/wecom/callback?code=zhao')->assertRedirect(route('wecom.denied'));
     $this->assertGuest();
     expect(User::query()->where('wecom_userid', 'zhao')->first()->status)->toBe(UserStatus::Disabled);
+});
+
+it('records an access token failure without marking people as left', function () {
+    bindWecom(sampleDepartments(), sampleUsers());
+    sync();
+
+    bindWecom(sampleDepartments(), sampleUsers(), failure: new HttpException('invalid credential'));
+    $log = sync();
+
+    expect($log->status)->toBe('failed')
+        ->and($log->message)->toBe('invalid credential')
+        ->and(User::query()->where('wecom_userid', 'zhao')->first()->status)->toBe(UserStatus::Active);
 });
 
 it('does not mark active people as left when the request fails', function () {
