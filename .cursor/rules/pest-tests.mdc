@@ -1,0 +1,13 @@
+---
+description: Pest tests that keep earlier TimePalace CRM phases working
+globs: tests/**/*.php
+alwaysApply: false
+---
+
+# Tests
+
+Use Pest feature tests against the database. Mock the WeCom client; do not use `Http::allowStrayRequests()` or real tokens.
+
+Each phase's tests stay in the suite. A later feature is not done if earlier tests fail.
+
+Cover at least: first sync, second sync without duplicates, department move, status 5 cannot log in, failed payload does not mass-disable users, local admin survives sync, unknown userid does not create a user.

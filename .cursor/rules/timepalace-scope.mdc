@@ -1,0 +1,19 @@
+---
+description: TimePalace CRM phase scope and invariants that must survive later changes
+alwaysApply: true
+---
+
+# TimePalace CRM
+
+Before changing behavior, read `business-requirements.md` and `development-plan.md`. Follow `.cursor/skills/timepalace-crm/SKILL.md`.
+
+The current phase is 1: WeCom staff sync and login only. Do not add customer, opportunity, order, inheritance, or report code unless the user explicitly opens that phase.
+
+- Business rules belong in services. Filament pages call services.
+- Tests mock WeCom. Never call the network from tests.
+- A second sync must not duplicate users or stores.
+- A failed sync must not mark active users as left.
+- Do not delete local admins that have no `wecom_userid`.
+- Synced active staff opening the app from WeCom get a session with no login screen. Do not add a password step for them.
+- Org is company → store → counter → staff. A person's counter is their department and their store is that department's parent. Do not import `其他（待设置部门）`.
+- Do not commit WeCom secrets.

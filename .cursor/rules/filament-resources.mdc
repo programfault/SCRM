@@ -1,0 +1,24 @@
+---
+description: Keep Filament pages thin in TimePalace CRM
+globs: app/Filament/**/*.php,app/Livewire/**/*.php
+alwaysApply: false
+---
+
+# Filament in this project
+
+Use Filament 5 APIs. Project rules override generic admin-panel habits.
+
+```php
+// ❌ BAD — sync and branching live in the page
+Action::make('sync')->action(function () {
+    $departments = Http::get('https://qyapi.weixin.qq.com/...');
+    User::updateOrCreate(...);
+});
+
+// ✅ GOOD — page calls the service used by the job and the tests
+Action::make('sync')->action(fn (SyncWecomAction $sync) => $sync->dispatch(auth()->user()));
+```
+
+- Authorize mutating actions with policies.
+- Do not hide a forbidden field only in the form. Reject it on the service or policy too.
+- Add a Pest feature test for the behavior in the same change.
