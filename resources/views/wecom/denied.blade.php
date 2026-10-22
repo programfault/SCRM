@@ -3,9 +3,18 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>无法进入</title>
+    <meta name="color-scheme" content="light">
+    <title>无法进入 - 天辰表行</title>
+    <style>
+        :root { color-scheme: light; }
+        html, body { margin: 0; background: #ffffff; color: #111111; }
+        main { font-family: sans-serif; padding: 2rem; }
+        p { margin: 0; font-size: 1rem; }
+    </style>
 </head>
-<body style="font-family: sans-serif; margin: 2rem;">
-    <p>{{ $reason }}</p>
+<body>
+    <main>
+        <p>{{ $reason }}</p>
+    </main>
 </body>
 </html>

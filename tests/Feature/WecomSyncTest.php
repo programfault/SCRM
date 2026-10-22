@@ -177,5 +177,6 @@ it('logs a synced active person in without a login page', function () {
         ->assertSee('已进入，赵亚晶')
         ->assertSee('麦凯乐')
         ->assertSee('欧米茄')
+        ->assertSee('color-scheme: light')
         ->assertDontSee('密码');
 });
