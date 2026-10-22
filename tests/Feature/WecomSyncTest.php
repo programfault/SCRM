@@ -3,7 +3,9 @@
 use App\Enums\DepartmentType;
 use App\Enums\UserStatus;
 use App\Models\Department;
+use App\Models\SyncLog;
 use App\Models\User;
+use App\Services\Wecom\SyncWecom;
 use App\Services\Wecom\WecomRequestFailed;
 use EasyWeChat\Kernel\Exceptions\HttpException;
 
@@ -100,6 +102,18 @@ it('refuses login for a disabled person', function () {
     $this->get('/wecom/callback?code=zhao')->assertRedirect(route('wecom.denied'));
     $this->assertGuest();
     expect(User::query()->where('wecom_userid', 'zhao')->first()->status)->toBe(UserStatus::Disabled);
+});
+
+it('finishes the sync record opened by the button', function () {
+    bindWecom(sampleDepartments(), sampleUsers());
+
+    $log = app(SyncWecom::class)->open();
+    app(SyncWecom::class)->execute($log);
+
+    expect(SyncLog::query()->count())->toBe(1)
+        ->and($log->refresh()->status)->toBe('succeeded')
+        ->and($log->departments_created)->toBe(7)
+        ->and($log->users_created)->toBe(2);
 });
 
 it('records an access token failure without marking people as left', function () {

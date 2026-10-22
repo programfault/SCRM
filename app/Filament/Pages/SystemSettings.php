@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Filament\Widgets\SyncLogTable;
 use App\Jobs\SyncWecomJob;
 use App\Models\WecomSetting;
+use App\Services\Wecom\SyncWecom;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
@@ -122,18 +123,25 @@ class SystemSettings extends Page
                 ->label('同步企业微信')
                 ->requiresConfirmation()
                 ->modalDescription('按企业微信通讯录更新部门和员工。已同步且在职的员工可以从企业微信直接进入，不出现登录页。')
-                ->action(function (): void {
-                    if (! WecomSetting::current()?->isReady()) {
-                        Notification::make()->title('请先保存企业 ID、AgentId 和 Secret')->danger()->send();
-
-                        return;
-                    }
-
-                    SyncWecomJob::dispatch(auth()->id());
-
-                    Notification::make()->title('同步已开始')->success()->send();
-                }),
+                ->action(fn () => $this->startSync()),
         ];
+    }
+
+    public function startSync(): void
+    {
+        if (! WecomSetting::current()?->isReady()) {
+            Notification::make()->title('请先保存企业 ID、AgentId 和 Secret')->danger()->send();
+
+            return;
+        }
+
+        $log = app(SyncWecom::class)->open(auth()->id());
+
+        SyncWecomJob::dispatch(syncLogId: $log->id)->afterResponse();
+
+        $this->dispatch('sync-log-updated');
+
+        Notification::make()->title('同步已开始，记录已添加')->success()->send();
     }
 
     protected function getFooterWidgets(): array

@@ -14,13 +14,23 @@ class SyncWecom
 {
     public function __construct(private readonly WecomClient $wecom) {}
 
-    public function run(?int $triggeredBy = null): SyncLog
+    public function open(?int $triggeredBy = null): SyncLog
     {
-        $log = SyncLog::query()->create([
+        return SyncLog::query()->create([
             'triggered_by' => $triggeredBy,
-            'status' => 'running',
+            'status' => 'queued',
             'started_at' => now(),
         ]);
+    }
+
+    public function run(?int $triggeredBy = null): SyncLog
+    {
+        return $this->execute($this->open($triggeredBy));
+    }
+
+    public function execute(SyncLog $log): SyncLog
+    {
+        $log->update(['status' => 'running']);
 
         try {
             $counts = DB::transaction(fn (): array => $this->apply(

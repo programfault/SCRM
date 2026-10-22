@@ -6,22 +6,30 @@ use App\Models\SyncLog;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
+use Livewire\Attributes\On;
 
 class SyncLogTable extends TableWidget
 {
     protected static bool $isDiscovered = false;
 
+    protected static bool $isLazy = false;
+
     protected int|string|array $columnSpan = 'full';
+
+    #[On('sync-log-updated')]
+    public function refreshSyncLog(): void {}
 
     public function table(Table $table): Table
     {
         return $table
             ->heading('同步记录')
-            ->query(SyncLog::query()->with('trigger')->latest('started_at'))
+            ->poll('3s')
+            ->query(SyncLog::query()->with('trigger')->latest('id'))
             ->columns([
                 TextColumn::make('started_at')->label('开始时间')->dateTime('Y-m-d H:i'),
                 TextColumn::make('trigger.name')->label('操作人')->placeholder('—'),
                 TextColumn::make('status')->label('结果')->formatStateUsing(fn (string $state): string => match ($state) {
+                    'queued' => '排队中',
                     'succeeded' => '成功',
                     'failed' => '失败',
                     default => '进行中',
