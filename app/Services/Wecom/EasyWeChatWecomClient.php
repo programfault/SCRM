@@ -42,6 +42,7 @@ class EasyWeChatWecomClient implements WecomClient
     {
         $payload = $this->get('/cgi-bin/user/list', [
             'department_id' => $departmentId,
+            'fetch_child' => 0,
         ]);
 
         return $payload['userlist'] ?? [];

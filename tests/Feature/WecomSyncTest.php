@@ -66,6 +66,31 @@ it('moves a person when their counter changes', function () {
         ->and(User::query()->where('wecom_userid', 'zhao')->count())->toBe(1);
 });
 
+it('moves a person when the old main department no longer lists them', function () {
+    bindWecom(sampleDepartments(), sampleUsers());
+    sync();
+
+    $users = sampleUsers();
+    $users[4] = [];
+    $users[7][] = [
+        'userid' => 'zhao',
+        'name' => '赵亚晶',
+        'department' => [4],
+        'main_department' => 4,
+        'status' => 1,
+    ];
+
+    bindWecom(sampleDepartments(), $users);
+    sync();
+
+    $person = User::query()->where('wecom_userid', 'zhao')->first();
+    $roosevelt = Department::query()->where('name', '罗斯福店')->first();
+    $rolex = Department::query()->where('name', '劳力士')->first();
+
+    expect($person->store_id)->toBe($roosevelt->id)
+        ->and($person->counter_id)->toBe($rolex->id);
+});
+
 it('renames a department without creating another row', function () {
     bindWecom(sampleDepartments(), sampleUsers());
     sync();

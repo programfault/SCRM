@@ -210,10 +210,12 @@ class SyncWecom
                 if (! isset($users[$userId])) {
                     $users[$userId] = $user;
                     $users[$userId]['department'] = array_map('intval', $user['department'] ?? []);
+                    $users[$userId]['observed_departments'] = [$departmentId];
 
                     continue;
                 }
 
+                $users[$userId]['observed_departments'][] = $departmentId;
                 $users[$userId]['department'] = array_values(array_unique([
                     ...$users[$userId]['department'],
                     ...array_map('intval', $user['department'] ?? []),
@@ -236,17 +238,26 @@ class SyncWecom
     private function saveUser(array $payload, array $classified, array &$notes): string
     {
         $userId = (string) $payload['userid'];
-        $departmentIds = array_values(array_filter(
-            array_map('intval', $payload['department'] ?? []),
+        $observed = array_values(array_unique(array_map(
+            'intval',
+            $payload['observed_departments'] ?? $payload['department'] ?? [],
+        )));
+        $observed = array_values(array_filter(
+            $observed,
             fn (int $id): bool => isset($classified[$id]),
         ));
-        $mainId = (int) ($payload['main_department'] ?? 0);
+        $reportedMain = (int) ($payload['main_department'] ?? 0);
+        $mainId = $reportedMain;
 
-        if (! isset($classified[$mainId])) {
-            $mainId = $departmentIds[0] ?? 0;
+        if (! in_array($mainId, $observed, true)) {
+            $counters = array_values(array_filter(
+                $observed,
+                fn (int $id): bool => $classified[$id]['type'] === DepartmentType::Counter,
+            ));
+            $mainId = $counters[0] ?? $observed[0] ?? 0;
 
-            if ($mainId !== 0 && count($departmentIds) > 1) {
-                $notes[] = "{$payload['name']} 没有主部门，已使用第一个专柜。";
+            if ($reportedMain !== 0 && $mainId !== 0) {
+                $notes[] = "{$payload['name']} 的主部门未包含此人，已改挂到当前部门。";
             }
         }
 
