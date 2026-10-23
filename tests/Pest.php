@@ -80,6 +80,21 @@ function bindWecom(array $departments, array $users, ?string $codeUserId = null,
         {
             return $this->users[$departmentId] ?? [];
         }
+
+        public function externalFollowUserIds(): array
+        {
+            return [];
+        }
+
+        public function externalContactIds(string $userId): array
+        {
+            return [];
+        }
+
+        public function externalContact(string $externalUserId): array
+        {
+            return [];
+        }
     });
 }
 

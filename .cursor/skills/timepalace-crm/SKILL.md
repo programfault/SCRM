@@ -14,9 +14,9 @@ Read `business-requirements.md` for business rules and `development-plan.md` for
 
 ## Current phase
 
-Phase 1 only: WeCom department and member sync, store mapping, workbench login, admin password login, sync log.
+Phase 1 remains the baseline: WeCom department and member sync, store mapping, workbench login, admin password login, sync log.
 
-Do not add customers, opportunities, orders, inheritance screens, reports, external contacts, or product catalogs unless the user explicitly starts that phase. Phase 1 must not contain those tables.
+The user explicitly opened a migration slice on top of that: old customers with name, phone, and owner; CSV import; assignment by name plus department; a reconcile that marks 已加入 only when the WeCom remark mobile and the owner's `wecom_userid` both match; admin progress; and the employee's own list on `/me`. Do not add opportunities, follow-ups, join requests, visibility rules, or orders onto this slice.
 
 ## Where code goes
 

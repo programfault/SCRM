@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\User;
 use App\Services\Wecom\WecomClient;
 use App\Services\Wecom\WecomNotConfigured;
@@ -63,9 +64,15 @@ class WecomLoginController extends Controller
     public function me(): View
     {
         $user = Auth::user()->load(['store', 'counter']);
+        $customers = Customer::query()
+            ->where('owner_id', $user->id)
+            ->orderBy('name')
+            ->get();
 
         return view('wecom.me', [
             'user' => $user,
+            'pendingCustomers' => $customers->whereNull('wecom_external_userid')->values(),
+            'addedCustomers' => $customers->whereNotNull('wecom_external_userid')->values(),
         ]);
     }
 }

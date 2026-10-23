@@ -17,4 +17,19 @@ interface WecomClient
      * @return array<int, array<string, mixed>>
      */
     public function users(int $departmentId): array;
+
+    /**
+     * @return array<int, string>
+     */
+    public function externalFollowUserIds(): array;
+
+    /**
+     * @return array<int, string>
+     */
+    public function externalContactIds(string $userId): array;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function externalContact(string $externalUserId): array;
 }

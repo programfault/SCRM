@@ -48,6 +48,43 @@ class EasyWeChatWecomClient implements WecomClient
         return $payload['userlist'] ?? [];
     }
 
+    public function externalFollowUserIds(): array
+    {
+        $payload = $this->get('/cgi-bin/externalcontact/get_follow_user_list');
+
+        return array_values(array_map(
+            static fn (mixed $userId): string => (string) $userId,
+            $payload['follow_user'] ?? [],
+        ));
+    }
+
+    public function externalContactIds(string $userId): array
+    {
+        try {
+            $payload = $this->get('/cgi-bin/externalcontact/list', [
+                'userid' => $userId,
+            ]);
+        } catch (WecomRequestFailed $exception) {
+            if ($exception->wecomCode === 84061) {
+                return [];
+            }
+
+            throw $exception;
+        }
+
+        return array_values(array_map(
+            static fn (mixed $externalUserId): string => (string) $externalUserId,
+            $payload['external_userid'] ?? [],
+        ));
+    }
+
+    public function externalContact(string $externalUserId): array
+    {
+        return $this->get('/cgi-bin/externalcontact/get', [
+            'external_userid' => $externalUserId,
+        ]);
+    }
+
     /**
      * @param  array<string, mixed>  $query
      * @return array<string, mixed>
@@ -61,7 +98,7 @@ class EasyWeChatWecomClient implements WecomClient
         $code = (int) ($payload['errcode'] ?? 0);
 
         if ($code !== 0) {
-            throw new WecomRequestFailed((string) ($payload['errmsg'] ?? '企业微信接口失败'));
+            throw new WecomRequestFailed((string) ($payload['errmsg'] ?? '企业微信接口失败'), $code);
         }
 
         return $payload;
